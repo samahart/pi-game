@@ -66,7 +66,6 @@ $env:RUSTFLAGS="-L C:\path\to\vosk-win64-0.3.45"
 $env:PATH += ";C:\path\to\vosk-win64-0.3.45"
 ```
 
-
 ### Build
 
 Obtain the source code for pi-game:
