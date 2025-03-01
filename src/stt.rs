@@ -8,7 +8,7 @@ use dasp::{Sample, sample::ToSample};
 use mpsc::Sender;
 use vosk::{DecodingState, Model, Recognizer};
 
-const GRAMMER: &str = "start point one two three four five six seven eight nine zero";
+const GRAMMAR: &str = "start point one two three four five six seven eight nine zero oh";
 
 pub fn stream_words(model_path: String, words_tx: Sender<Vec<String>>) -> Stream {
     // Setup microphone
@@ -26,7 +26,7 @@ pub fn stream_words(model_path: String, words_tx: Sender<Vec<String>>) -> Stream
     // Setup speech-to-text model
     let model = Model::new(model_path).expect("Could not create the model");
     let mut recognizer =
-        Recognizer::new_with_grammar(&model, config.sample_rate().0 as f32, &[GRAMMER, "[unk]"])
+        Recognizer::new_with_grammar(&model, config.sample_rate().0 as f32, &[GRAMMAR, "[unk]"])
             .expect("Could not create the Recognizer");
     recognizer.set_words(true);
     recognizer.set_partial_words(true);
