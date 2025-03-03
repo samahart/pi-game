@@ -24,18 +24,13 @@ fn main() {
     })
     .expect("Error setting up shutdown handler");
 
-    println!("Starting speech-to-text...");
-
     // Need to keep ownership of the stream here or else it will get dropped on function return
     let stream = stream_words(model_path, words_tx);
 
-    let mut game = Game::new();
-    println!("game: {game:?}");
-
     // Play game until shutdown signal received
+    let mut game = Game::new();
     while let Err(TryRecvError::Empty) = shutdown_rx.try_recv() {
         if let Ok(words) = words_rx.recv_timeout(record_duration) {
-            println!("{:?}", words);
             game.play(words);
         }
     }

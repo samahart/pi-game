@@ -1,7 +1,11 @@
+use crate::tui::Tui;
 use std::ops::{Index, IndexMut};
+use std::thread::sleep;
+use std::time::Duration;
 
 const PI: &str = "3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706";
 const MAX_SCORE: usize = PI.len();
+const GAME_OVER_PAUSE: Duration = Duration::from_secs(4);
 
 #[derive(Debug)]
 struct PiChars([char; MAX_SCORE]);
@@ -30,7 +34,6 @@ impl IndexMut<usize> for PiChars {
 enum State {
     Waiting,
     Playing,
-    Ending,
 }
 
 impl Default for State {
@@ -44,38 +47,38 @@ pub struct Game {
     high_score: usize,
     current_score: usize,
     state: State,
-    pi_chars: PiChars,
+    chars_pi: PiChars,
+    chars_input: Vec<CharCorrectness>,
+    tui: Tui,
+}
+
+#[derive(Debug, Default)]
+pub struct CharCorrectness {
+    pub c: char,
+    pub correct: bool,
 }
 
 impl Game {
     pub fn new() -> Self {
         let mut game = Self::default();
         for (i, c) in PI.chars().enumerate() {
-            game.pi_chars[i] = c;
+            game.chars_pi[i] = c;
         }
+        game.update_score();
         game
     }
 
     pub fn play(&mut self, mut words: Vec<String>) {
-        // If ending, wait for external timer to call end_game
-        if self.state == State::Ending {
-            return;
-        }
         // Check for start of game
         if self.state == State::Waiting {
             if let Some(more_words) = self.find_start(&words) {
                 words = more_words;
-                println!("starting game: words remaining: {:?}", words);
             }
         }
         // Play game
         if self.state == State::Playing {
             self.play_words(words);
         }
-
-        // Print:
-        // - print current progress is Playing
-        // - print high score if waiting
     }
 
     // Searches for the word "start" and returns remaining words that could be playable if start was found
@@ -83,6 +86,7 @@ impl Game {
         for (i, word) in words.iter().enumerate() {
             if word == "start" {
                 self.state = State::Playing;
+                self.update_score();
                 if i < words.len() {
                     return Some(words[i + 1..].to_vec());
                 }
@@ -93,22 +97,35 @@ impl Game {
 
     fn play_words(&mut self, words: Vec<String>) {
         let mut i = self.current_score;
+        let mut game_over = false;
         for word in words {
-            let c = self.pi_chars[i];
+            let c = self.chars_pi[i];
             if let Some(char_said) = word_to_char(&word) {
                 if char_said == c {
-                    println!("Correct!: {c}");
                     self.current_score += 1;
+                    self.chars_input.push(CharCorrectness { c, correct: true });
                     if self.current_score == MAX_SCORE {
-                        // handing winning case so we don't go past max digits stored for PI
+                        // handle winning case so we don't go past max digits stored for PI
+                        todo!();
+                    } else {
+                        self.update_score();
                     }
                 } else {
-                    println!("Incorrect char: '{char_said}'");
+                    self.chars_input.push(CharCorrectness {
+                        c: char_said,
+                        correct: false,
+                    });
+                    game_over = true;
+                    self.update_score();
                 }
-            } else {
-                println!("Unrecognized word : '{word}'");
             }
+            // else: ignore unrecognized words
             i += 1;
+        }
+        if game_over {
+            sleep(GAME_OVER_PAUSE);
+            self.end_game();
+            self.update_score();
         }
     }
 
@@ -116,6 +133,35 @@ impl Game {
     fn end_game(&mut self) {
         self.state = State::Waiting;
         self.current_score = 0;
+        self.chars_input.clear();
+    }
+
+    fn update_score(&mut self) {
+        if self.current_score > self.high_score {
+            self.high_score = self.current_score;
+        }
+        match self.state {
+            State::Playing => {
+                if self.chars_input.len() == 0 {
+                    self.tui.update_info(
+                        self.high_score,
+                        self.current_score,
+                        "start reciting pi...",
+                    )
+                } else {
+                    self.tui.update_user_input(
+                        self.high_score,
+                        self.current_score,
+                        &self.chars_input,
+                    )
+                }
+            }
+            State::Waiting => self.tui.update_info(
+                self.high_score,
+                self.current_score,
+                "say \"start\" to begin",
+            ),
+        }
     }
 }
 

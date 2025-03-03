@@ -6,7 +6,7 @@ use cpal::{
 };
 use dasp::{Sample, sample::ToSample};
 use mpsc::Sender;
-use vosk::{DecodingState, Model, Recognizer};
+use vosk::{DecodingState, LogLevel, Model, Recognizer, set_log_level};
 
 const GRAMMAR: &str = "start point one two three four five six seven eight nine zero oh";
 
@@ -16,6 +16,7 @@ pub fn stream_words(model_path: String, words_tx: Sender<Vec<String>>) -> Stream
         .default_input_device()
         .expect("No input device connected");
 
+    #[cfg(debug_assertions)]
     println!("{:?}", audio_input_device.name());
 
     let config = audio_input_device
@@ -24,6 +25,7 @@ pub fn stream_words(model_path: String, words_tx: Sender<Vec<String>>) -> Stream
     let channels = config.channels();
 
     // Setup speech-to-text model
+    set_log_level(LogLevel::Error); // make vosk output less verbose
     let model = Model::new(model_path).expect("Could not create the model");
     let mut recognizer =
         Recognizer::new_with_grammar(&model, config.sample_rate().0 as f32, &[GRAMMAR, "[unk]"])
