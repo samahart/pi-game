@@ -16,13 +16,20 @@ pub fn stream_words(model_path: String, words_tx: Sender<Vec<String>>) -> Stream
         .default_input_device()
         .expect("No input device connected");
 
-    #[cfg(debug_assertions)]
-    println!("{:?}", audio_input_device.name());
-
     let config = audio_input_device
         .default_input_config()
         .expect("Failed to load default input config");
     let channels = config.channels();
+
+    #[cfg(debug_assertions)]
+    println!(
+        "Default input device {:?}",
+        audio_input_device
+            .name()
+            .expect("No input device name found")
+    );
+    #[cfg(debug_assertions)]
+    println!("Default input config: {:?}", config);
 
     // Setup speech-to-text model
     set_log_level(LogLevel::Error); // make vosk output less verbose
