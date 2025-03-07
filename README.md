@@ -120,7 +120,7 @@ cargo run --release -- /home/dietpi/vosk/vosk-model-small-en-us-0.15
 
 ### Debugging Sound I/O
 
-If you are unsure if the microphone connected to the Pi is working you can try to record some audio and play it back. Run the following command to install tools for debugging the microphone on the Pi.
+If you are unsure if the microphone connected to the Pi is working, you can try to record some audio and play it back. Run the following command to install tools for debugging the microphone on the Pi.
 
 ```bash
 apt install alsa-utils
