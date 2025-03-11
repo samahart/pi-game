@@ -1,5 +1,6 @@
-# pi-game
-A fun game to test your ability to recite the digits of pi
+# pi-game 🍰
+
+A terminal user interface (TUI) game that tests your ability to recite the digits of pi.
 
 ## Build pi-game
 
@@ -86,7 +87,7 @@ curl -LO https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip
 unzip vosk-model-small-en-us-0.15.zip
 ```
 
-Add the following lines to file in `/home/dietpi/.bashrc` (note, you may need to install a text editor such as vim):
+Add the following lines to `/home/dietpi/.bashrc` (note, you may need to install a text editor such as vim):
 
 ```bash
 export RUSTFLAGS="-L /home/dietpi/vosk/vosk-linux-aarch64-0.3.45"
