@@ -10,6 +10,7 @@ use std::time::Duration;
 use vosk::{DecodingState, LogLevel, Model, Recognizer, set_log_level};
 
 const GRAMMAR: &str = "start point one two three four five six seven eight nine zero oh";
+const STREAM_RECEIVE_TIMEOUT: Duration = Duration::from_millis(50);
 
 pub fn start_stt(
     model_path: String,
@@ -109,10 +110,9 @@ fn recognize_thead(
     words_tx: mpsc::Sender<Vec<String>>,
     shutdown_rx: Receiver<()>,
 ) {
-    let record_duration = Duration::from_millis(50);
     let mut prev_input: String = Default::default();
     while let Err(TryRecvError::Empty) = shutdown_rx.try_recv() {
-        if let Ok(data) = stream_rx.recv_timeout(record_duration) {
+        if let Ok(data) = stream_rx.recv_timeout(STREAM_RECEIVE_TIMEOUT) {
             let state = recognizer.accept_waveform(&data).unwrap();
             let possible_new_str: Option<&str> = match state {
                 DecodingState::Running => {

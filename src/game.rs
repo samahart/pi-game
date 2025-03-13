@@ -6,6 +6,7 @@ use std::time::Duration;
 const PI: &str = "3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706";
 const MAX_SCORE: usize = PI.len();
 const GAME_OVER_PAUSE: Duration = Duration::from_secs(4);
+const GAME_WIN_PAUSE: Duration = Duration::from_secs(2);
 
 #[derive(Debug)]
 struct PiChars([char; MAX_SCORE]);
@@ -104,11 +105,11 @@ impl Game {
                 if char_said == c {
                     self.current_score += 1;
                     self.chars_input.push(CharCorrectness { c, correct: true });
+                    self.update_score();
                     if self.current_score == MAX_SCORE {
                         // handle winning case so we don't go past max digits stored for PI
-                        todo!();
-                    } else {
-                        self.update_score();
+                        game_over = true;
+                        break;
                     }
                 } else {
                     self.chars_input.push(CharCorrectness {
@@ -125,7 +126,7 @@ impl Game {
         if game_over {
             sleep(GAME_OVER_PAUSE);
             self.end_game();
-            self.update_score();
+            self.update_score(); // reset to waiting for user input
         }
     }
 
@@ -147,6 +148,18 @@ impl Game {
                         self.high_score,
                         self.current_score,
                         "start reciting pi...",
+                    )
+                } else if self.current_score == MAX_SCORE {
+                    self.tui.update_user_input(
+                        self.high_score,
+                        self.current_score,
+                        &self.chars_input,
+                    );
+                    sleep(GAME_WIN_PAUSE);
+                    self.tui.update_info(
+                        self.high_score,
+                        self.current_score,
+                        "Congratulations, you won!",
                     )
                 } else {
                     self.tui.update_user_input(
